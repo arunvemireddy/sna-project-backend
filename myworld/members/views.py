@@ -41,7 +41,7 @@ def getMeasures(request):
     pageRank_val = pageRank(G)
     clustering_val = clustering(G)
     girvan_communities = girvan(G,2)
-    # cross_cliques = crossclique_centrality(data)
+    cross_cliques = crossclique_centrality(data)
     di ={}
     di['betweenness'] = b_val
     di['degree_val'] = degree_val
@@ -50,7 +50,7 @@ def getMeasures(request):
     di['transitivity_val'] = transitivity_val
     di['pageRank_val'] = pageRank_val
     di['clustering_val'] = clustering_val
-    # di['cross-clique'] = cross_cliques
+    di['cross-clique'] = cross_cliques
     di['girvan_communities'] = girvan_communities
 
     # print(cross_cliques)
@@ -104,6 +104,7 @@ def clustering(G):
     except:
         return {"clustering":"error"}
   
+
   #cross-clique
 def getHash(edges):
     d={}
@@ -125,7 +126,7 @@ def getLen(country,edges):
 def crossclique_centrality(edges):
     cen = {}
     for i in edges:
-        cen[i['country1_name']] = getLen(i['country1_name',edges])
+        cen[i['country1_name']] = getLen(i['country1_name'],edges)
     return cen
 
 
