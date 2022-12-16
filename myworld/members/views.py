@@ -9,6 +9,9 @@ from networkx.readwrite import json_graph
 from django.http import JsonResponse
 from networkx.algorithms import community
 import itertools
+from networkx.algorithms.community import greedy_modularity_communities
+from networkx.algorithms.community import k_clique_communities
+
 
 
 
@@ -41,7 +44,10 @@ def getMeasures(request):
     pageRank_val = pageRank(G)
     clustering_val = clustering(G)
     girvan_communities = girvan(G,2)
-    cross_cliques = crossclique_centrality(data)
+    cross_cliques = crossclique_centrality(G)
+    k_clique = k_clique_coms(G)
+    modularity_val = modularity_max(G)
+    global_clustering_val = global_clustering(G)
     di ={}
     di['betweenness'] = b_val
     di['degree_val'] = degree_val
@@ -50,10 +56,14 @@ def getMeasures(request):
     di['transitivity_val'] = transitivity_val
     di['pageRank_val'] = pageRank_val
     di['clustering_val'] = clustering_val
-    di['cross-clique'] = cross_cliques
-    di['girvan_communities'] = girvan_communities
 
-    # print(cross_cliques)
+    di['cross-clique'] = cross_cliques
+    di['k_clique'] = k_clique
+    di['modularity_val'] = modularity_val
+    di['girvan_communities'] = girvan_communities
+    di['global_clustering_val'] = global_clustering_val
+
+
     res=[]
     res.append(di)
     # print(np.matrix(res))
@@ -92,6 +102,12 @@ def transitivity(G):
     except:
         return {"transitivity":"error"}
 
+def global_clustering(G):
+    try:
+        return nx.average_clustering(G)
+    except:
+        return {"transitivity":"error"}
+
 def pageRank(G):
     try:
         return nx.pagerank_numpy(G,weight='weight')
@@ -103,32 +119,42 @@ def clustering(G):
         return nx.clustering(G)
     except:
         return {"clustering":"error"}
+
+def modularity():
+    pass
   
-
-  #cross-clique
-def getHash(edges):
-    d={}
-    for i in edges:
-        country_name = i['country1_name']
-        hashtag = i['attribute']
-        if country_name in d:
-            d[country_name].append(hashtag)
+def crossclique_centrality(G):
+    cliques=list(nx.find_cliques(G))
+    clique1=[]
+    for clique in cliques:
+      if(len(clique)>2):
+        clique1.append(clique)
+    cliques=clique1
+    cliques_dic = {}
+    for c in cliques:
+      for value in c:
+        if(value in cliques_dic):
+          cliques_dic[value] += 1
         else:
-            d[country_name] = [hashtag]
-    return d
+          cliques_dic[value] = 1
+    return cliques_dic
 
+def modularity_max(G,num_com="Default"):
+    if(num_com=="Default"):
+      communities= list(greedy_modularity_communities(G))
+    else:
+      communities= list(greedy_modularity_communities(G,cutoff=num_com,best_n=num_com))
+    com=[]
+    for community in communities:
+      com.append(list(community))
+    return com
 
-def getLen(country,edges):
-    d = getHash(edges)
-    return len(d[country])
-
-
-def crossclique_centrality(edges):
-    cen = {}
-    for i in edges:
-        cen[i['country1_name']] = getLen(i['country1_name'],edges)
-    return cen
-
+def k_clique_coms(G):
+    coms = list(k_clique_communities(G, 4))
+    com=[]
+    for community in coms:
+      com.append(list(community))
+    return com
 
 
 def girvan(G,number_of_communities):
@@ -137,3 +163,5 @@ def girvan(G,number_of_communities):
     for communities in itertools.islice(communities_generator, number_of_communities-1):
       array.append(tuple(sorted(c) for c in communities))
     return array[number_of_communities-2] 
+
+
