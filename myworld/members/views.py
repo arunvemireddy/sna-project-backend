@@ -11,6 +11,7 @@ from networkx.algorithms import community
 import itertools
 from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community import k_clique_communities
+from networkx import edge_betweenness_centrality as between
 
 
 
@@ -33,8 +34,10 @@ def getMeasures(request):
     data = body['edges']
     for i in data:
         # print(i)
-        edge = [(i['country1_name'],i['country2_name'],i)]
-        G.add_edges_from(edge)
+        edge = [(i['country1_name'],i['country2_name'],i['weight'])]
+        G.add_weighted_edges_from(edge)
+
+    # print(nx.get_edge_attributes(G,"weight"))
 
     b_val = betweenness(G)
     degree_val = degree(G)
@@ -68,9 +71,6 @@ def getMeasures(request):
     res.append(di)
     # print(np.matrix(res))
     return JsonResponse({'data':json.dumps(res)})
-
-
-
 
 def betweenness(G):
     try:
@@ -116,7 +116,7 @@ def pageRank(G):
 
 def clustering(G):
     try:
-        return nx.clustering(G)
+        return nx.clustering(G,weight="weight")
     except:
         return {"clustering":"error"}
 
@@ -141,9 +141,9 @@ def crossclique_centrality(G):
 
 def modularity_max(G,num_com="Default"):
     if(num_com=="Default"):
-      communities= list(greedy_modularity_communities(G))
+      communities= list(greedy_modularity_communities(G,weight="weight"))
     else:
-      communities= list(greedy_modularity_communities(G,cutoff=num_com,best_n=num_com))
+      communities= list(greedy_modularity_communities(G,weight="weight",cutoff=num_com,best_n=num_com))
     com=[]
     for community in communities:
       com.append(list(community))
@@ -157,7 +157,15 @@ def k_clique_coms(G):
     return com
 
 
+def most_central_edge(G):
+    centrality = between(G, weight="weight")
+    print("arun")
+    # print(centrality)
+    t = max(centrality, key=centrality.get)
+    return t
+
 def girvan(G,number_of_communities):
+    # y=most_central_edge(G)
     communities_generator = community.girvan_newman(G)
     array=[]
     for communities in itertools.islice(communities_generator, number_of_communities-1):
