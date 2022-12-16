@@ -12,7 +12,7 @@ import itertools
 from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community import k_clique_communities
 from networkx import edge_betweenness_centrality as between
-
+import networkx.algorithms.community as nx_comm
 
 
 
@@ -51,6 +51,7 @@ def getMeasures(request):
     k_clique = k_clique_coms(G)
     modularity_val = modularity_max(G)
     global_clustering_val = global_clustering(G)
+    louvian_community_val = louvian_community(G)
     di ={}
     di['betweenness'] = b_val
     di['degree_val'] = degree_val
@@ -65,6 +66,7 @@ def getMeasures(request):
     di['modularity_val'] = modularity_val
     di['girvan_communities'] = girvan_communities
     di['global_clustering_val'] = global_clustering_val
+    di['louvian_community'] = louvian_community_val
 
 
     res=[]
@@ -160,7 +162,7 @@ def k_clique_coms(G):
 def most_central_edge(G):
     centrality = between(G, weight="weight")
     print("arun")
-    # print(centrality)
+    print(centrality)
     t = max(centrality, key=centrality.get)
     return t
 
@@ -172,4 +174,9 @@ def girvan(G,number_of_communities):
       array.append(tuple(sorted(c) for c in communities))
     return array[number_of_communities-2] 
 
-
+def louvian_community(G):
+    coms = list(nx_comm.louvain_communities(G, weight="weight"))
+    com=[]
+    for community in coms:
+      com.append(list(community))
+    return com
