@@ -18,7 +18,6 @@ import networkx.algorithms.community as nx_comm
 
 # Create your views here.
 
-
 def index(request):
     G = nx.Graph()
     G.add_edge(1,2)
@@ -167,7 +166,6 @@ def most_central_edge(G):
     return t
 
 def girvan(G,number_of_communities):
-    # y=most_central_edge(G)
     communities_generator = community.girvan_newman(G)
     array=[]
     for communities in itertools.islice(communities_generator, number_of_communities-1):
